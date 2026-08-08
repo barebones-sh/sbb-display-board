@@ -51,11 +51,18 @@ jobs:
           ssh -o StrictHostKeyChecking=accept-new "$SSH_USER@$SSH_HOST" bash -s <<'REMOTE'
           set -euo pipefail
           REPO_DIR="$HOME/sbb-display-board"
-          if [ -d "$REPO_DIR/.git" ]; then
-            git -C "$REPO_DIR" fetch origin main
-            git -C "$REPO_DIR" reset --hard origin/main
-          else
-            git clone https://github.com/barebones-sh/sbb-display-board.git "$REPO_DIR"
+          # `git init` + `remote add` + `fetch` + `reset --hard`, not
+          # `git clone` — the previous step already created this directory
+          # (and .env inside it) before this one ever runs, so it's never
+          # actually empty by the time we get here; `git clone` refuses to
+          # clone into a non-empty directory, but `init` doesn't care, and
+          # `reset --hard` only touches tracked files, leaving `.env` alone.
+          mkdir -p "$REPO_DIR"
+          if [ ! -d "$REPO_DIR/.git" ]; then
+            git -C "$REPO_DIR" init
+            git -C "$REPO_DIR" remote add origin https://github.com/barebones-sh/sbb-display-board.git
           fi
+          git -C "$REPO_DIR" fetch origin main
+          git -C "$REPO_DIR" reset --hard origin/main
           docker compose -f "$REPO_DIR/docker-compose.yml" up -d --build
           REMOTE
