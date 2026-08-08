@@ -61,7 +61,7 @@ export function DefaultsSection() {
               dispatch({ type: "SET_TRAINS_ONLY", trainsOnly: e.target.checked })
             }
           />
-          Trains only (hide buses/trams)
+          Only trains (in train stations)
         </label>
       </div>
     </section>

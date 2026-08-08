@@ -10,6 +10,12 @@ export interface SavedStation {
   name: string;
   /** The exact string passed as the `station` query param to the API. */
   apiStationName: string;
+  /** Primary transport-mode icon from the `/v1/locations` search result at
+   * add-time (e.g. "train", "tram", "bus", "ship"). `null` for stations
+   * saved before this field existed, or when the search result carried no
+   * icon — treated as a train station for `trainsOnly` filtering purposes,
+   * matching prior (unconditional) behavior. */
+  icon: string | null;
 }
 
 export interface AppState {
@@ -22,7 +28,9 @@ export interface AppState {
   refreshIntervalMs: number;
   /** When true, only train services are requested from the API — buses/trams
    * sharing a stop cluster (e.g. Genève) are excluded. Defaults to true since
-   * this app replicates a train station departure board. */
+   * this app replicates a train station departure board. Only actually
+   * applied when the current station is itself a train station — see
+   * SavedStation.icon and Board.tsx's effectiveTrainsOnly. */
   trainsOnly: boolean;
 }
 

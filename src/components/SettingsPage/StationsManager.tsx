@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAppDispatch, useAppState } from "../../context/AppStateContext";
 import { useLocationSearch } from "../../hooks/useLocationSearch";
+import type { LocationResult } from "../../types/locations";
 import styles from "./SettingsPage.module.css";
 
 export function StationsManager() {
@@ -9,10 +10,11 @@ export function StationsManager() {
   const [query, setQuery] = useState("");
   const { results } = useLocationSearch(query);
 
-  const addStation = (name: string) => {
+  const addStation = (result: LocationResult) => {
+    const name = result.name!;
     dispatch({
       type: "ADD_STATION",
-      station: { id: crypto.randomUUID(), name, apiStationName: name },
+      station: { id: crypto.randomUUID(), name, apiStationName: name, icon: result.icon },
     });
     setQuery("");
   };
@@ -75,7 +77,7 @@ export function StationsManager() {
                     key={result.id}
                     type="button"
                     className={styles.searchResultButton}
-                    onClick={() => addStation(result.name!)}
+                    onClick={() => addStation(result)}
                   >
                     {result.name}
                   </button>

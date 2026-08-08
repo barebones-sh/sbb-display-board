@@ -37,12 +37,20 @@ export function Board() {
     useAppState();
   const currentStation = savedStations[currentStationIndex] ?? null;
 
+  // The trainsOnly setting only makes sense at a train station — applying
+  // it to a station that's itself a bus/tram/boat stop would hide the
+  // stop's own service. `icon` is null for stations saved before this
+  // field existed (or an ambiguous search result), which is treated as a
+  // train station to preserve prior (unconditional) behavior.
+  const effectiveTrainsOnly =
+    trainsOnly && (currentStation?.icon == null || currentStation.icon === "train");
+
   const { rows, error } = useStationboard(
     currentStation?.apiStationName ?? null,
     viewMode,
     FETCH_LIMIT,
     refreshIntervalMs,
-    trainsOnly,
+    effectiveTrainsOnly,
   );
 
   const containerRef = useRef<HTMLDivElement>(null);

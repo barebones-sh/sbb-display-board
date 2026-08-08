@@ -19,7 +19,7 @@ the browser calls them directly.
 The official docs for this API are thin, so the shapes in
 [src/types/stationboard.ts](../src/types/stationboard.ts) were verified by
 hand against real requests during bootstrap (e.g. `station=Bern`), not
-copied from documentation. Two things worth knowing if you're extending
+copied from documentation. A few things worth knowing if you're extending
 `mapStationboard.ts`:
 
 - **`stop.platform` is one string that can carry a boarding-sector suffix
@@ -33,6 +33,13 @@ copied from documentation. Two things worth knowing if you're extending
   (`DisplayRow.lineLabel`) is built from `category` + `number` instead
   (e.g. `IR` + `90` → "IR90"). `number` is occasionally letter-prefixed
   (observed: `"N1"`).
+- **`/v1/locations` results carry an `icon` field identifying the stop's
+  primary transport mode** — sampled live: `"train"`, `"tram"`, `"bus"`,
+  `"ship"`, and `null` for non-station address results. Used by
+  `SavedStation.icon` ([src/types/appState.ts](../src/types/appState.ts))
+  to scope the `trainsOnly` filter to stations that are actually train
+  stations — see `effectiveTrainsOnly` in
+  [src/components/Board/Board.tsx](../src/components/Board/Board.tsx).
 
 ## Known gaps
 
