@@ -9,7 +9,7 @@
   background: var(--color-header-bg);
   color: var(--color-header-text);
   font-size: 1.1em;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .clock {

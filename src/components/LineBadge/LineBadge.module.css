@@ -14,7 +14,7 @@
    * taller/padded, never because its text outgrows the rest of the row. */
   font-size: 1em;
   line-height: 1;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 0.01em;
   white-space: nowrap;
 }
@@ -32,6 +32,7 @@
 .intercity {
   background: var(--color-badge-intercity-bg);
   color: var(--color-badge-intercity-text);
+  padding-left: 0.4rem;
 }
 
 .default {
@@ -52,5 +53,5 @@
 }
 
 .number {
-  font-weight: 800;
+  font-weight: 600;
 }

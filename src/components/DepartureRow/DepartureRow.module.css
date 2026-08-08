@@ -39,7 +39,7 @@
 
 .time {
   flex: none;
-  font-weight: 800;
+  font-weight: 600;
 }
 
 .destination {
@@ -53,7 +53,7 @@
 }
 
 .destName {
-  font-weight: 800;
+  font-weight: 600;
   flex: none;
 }
 
@@ -68,24 +68,25 @@
 .viaLabel {
   flex: none;
   font-weight: 400;
-  color: var(--color-via-text);
+  font-size: 0.7em;
+  color: var(--color-white);
 }
 
 .viaStop {
   flex: none;
   font-weight: 400;
-  color: var(--color-via-text);
+  color: var(--color-white);
 }
 
 .platform {
   text-align: right;
-  font-weight: 800;
+  font-weight: 600;
   white-space: nowrap;
 }
 
 .sector {
   text-align: left;
-  font-weight: 800;
+  font-weight: 600;
   white-space: nowrap;
 }
 
@@ -105,7 +106,7 @@
   padding: 0.15em 0.5em;
   background: var(--color-cancel-bg);
   color: var(--color-white);
-  font-weight: 700;
+  font-weight: 600;
   text-align: left;
 }
 
