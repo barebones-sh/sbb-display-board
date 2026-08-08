@@ -19,6 +19,7 @@ const DEFAULT_STATE: AppState = {
   viewMode: "departure",
   language: "en",
   refreshIntervalMs: 20_000,
+  trainsOnly: true,
 };
 
 /**
@@ -73,6 +74,8 @@ function reducer(state: AppState, action: Action): AppState {
       return { ...state, language: action.language };
     case "SET_VIEW_MODE":
       return { ...state, viewMode: action.viewMode };
+    case "SET_TRAINS_ONLY":
+      return { ...state, trainsOnly: action.trainsOnly };
     case "SET_CURRENT_STATION_INDEX":
       return {
         ...state,

@@ -33,7 +33,8 @@ const SIZER_ROW: DisplayRow = {
 };
 
 export function Board() {
-  const { savedStations, currentStationIndex, viewMode, refreshIntervalMs } = useAppState();
+  const { savedStations, currentStationIndex, viewMode, refreshIntervalMs, trainsOnly } =
+    useAppState();
   const currentStation = savedStations[currentStationIndex] ?? null;
 
   const { rows, error } = useStationboard(
@@ -41,6 +42,7 @@ export function Board() {
     viewMode,
     FETCH_LIMIT,
     refreshIntervalMs,
+    trainsOnly,
   );
 
   const containerRef = useRef<HTMLDivElement>(null);

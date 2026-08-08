@@ -20,6 +20,10 @@ export interface AppState {
   viewMode: ViewMode;
   language: Language;
   refreshIntervalMs: number;
+  /** When true, only train services are requested from the API — buses/trams
+   * sharing a stop cluster (e.g. Genève) are excluded. Defaults to true since
+   * this app replicates a train station departure board. */
+  trainsOnly: boolean;
 }
 
 export type Action =
@@ -28,6 +32,7 @@ export type Action =
   | { type: "CYCLE_LANGUAGE" }
   | { type: "SET_LANGUAGE"; language: Language }
   | { type: "SET_VIEW_MODE"; viewMode: ViewMode }
+  | { type: "SET_TRAINS_ONLY"; trainsOnly: boolean }
   | { type: "SET_CURRENT_STATION_INDEX"; index: number }
   | { type: "ADD_STATION"; station: SavedStation }
   | { type: "REMOVE_STATION"; id: string }

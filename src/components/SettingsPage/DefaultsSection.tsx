@@ -10,7 +10,7 @@ const LANGUAGES: { value: Language; label: string }[] = [
 ];
 
 export function DefaultsSection() {
-  const { language, viewMode } = useAppState();
+  const { language, viewMode, trainsOnly } = useAppState();
   const dispatch = useAppDispatch();
 
   return (
@@ -50,6 +50,19 @@ export function DefaultsSection() {
             </label>
           ))}
         </div>
+      </div>
+
+      <div className={styles.fieldRow}>
+        <label className={styles.radioLabel}>
+          <input
+            type="checkbox"
+            checked={trainsOnly}
+            onChange={(e) =>
+              dispatch({ type: "SET_TRAINS_ONLY", trainsOnly: e.target.checked })
+            }
+          />
+          Trains only (hide buses/trams)
+        </label>
       </div>
     </section>
   );

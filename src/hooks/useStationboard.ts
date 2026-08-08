@@ -22,6 +22,7 @@ export function useStationboard(
   viewMode: ViewMode,
   limit: number,
   refreshIntervalMs: number,
+  trainsOnly: boolean,
 ): UseStationboardResult {
   const { language } = useAppState();
   const [entries, setEntries] = useState<StationboardEntry[]>([]);
@@ -49,6 +50,7 @@ export function useStationboard(
           apiStationName,
           viewMode,
           limit,
+          trainsOnly,
           controller.signal,
         );
         if (cancelled) return;
@@ -70,7 +72,7 @@ export function useStationboard(
       controller?.abort();
       clearInterval(intervalId);
     };
-  }, [apiStationName, viewMode, limit, refreshIntervalMs]);
+  }, [apiStationName, viewMode, limit, refreshIntervalMs, trainsOnly]);
 
   const rows = useMemo(() => mapStationboard(entries, language), [entries, language]);
 
