@@ -45,8 +45,10 @@ function DepartureRowImpl({ row, standalone = false }: DepartureRowProps) {
           {row.viaStops.length > 0 && (
             <>
               <span className={styles.viaLabel}>{t("via")}</span>
-              {row.viaStops.map((stop) => (
-                <span key={stop} className={styles.viaStop}>
+              {row.viaStops.map((stop, i) => (
+                // Index included: a looping tram/bus route can legitimately
+                // pass through the same stop name twice in one via-list.
+                <span key={`${stop}-${i}`} className={styles.viaStop}>
                   {stop}
                 </span>
               ))}

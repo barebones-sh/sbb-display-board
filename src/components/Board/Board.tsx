@@ -1,4 +1,4 @@
-import { useMemo, useRef } from "react";
+import { Fragment, useMemo, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useAppState } from "../../context/AppStateContext";
 import { useStationboard } from "../../hooks/useStationboard";
@@ -36,6 +36,9 @@ export function Board() {
   const { savedStations, currentStationIndex, viewMode, refreshIntervalMs, trainsOnly } =
     useAppState();
   const currentStation = savedStations[currentStationIndex] ?? null;
+  // Memoized so useStationboard's cache-pruning effect only reruns on an
+  // actual add/remove/reorder, not on every unrelated re-render.
+  const savedStationIds = useMemo(() => savedStations.map((s) => s.id), [savedStations]);
 
   // The trainsOnly setting only makes sense at a train station — applying
   // it to a station that's itself a bus/tram/boat stop would hide the
@@ -46,11 +49,13 @@ export function Board() {
     trainsOnly && (currentStation?.icon == null || currentStation.icon === "train");
 
   const { rows, error } = useStationboard(
+    currentStation?.id ?? null,
     currentStation?.apiStationName ?? null,
     viewMode,
     FETCH_LIMIT,
     refreshIntervalMs,
     effectiveTrainsOnly,
+    savedStationIds,
   );
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -90,11 +95,30 @@ export function Board() {
        * auto-size to content instead of needing hand-tuned constants. */}
       <div className={styles.grid}>
         <HeaderBar ref={headerRef} />
-        {visibleRows.length === 0 && error ? (
-          <div className={styles.status}>Unable to load stationboard.</div>
-        ) : (
-          visibleRows.map((row) => <DepartureRow key={row.id} row={row} />)
-        )}
+        {/* Keyed on the station itself (not just its rows) so switching
+         * stations always fully unmounts and remounts this whole subtree
+         * instead of React reconciling it row-by-row against the previous
+         * station's list. Row ids are already unique per station (see
+         * mapStationboard.ts), so in principle per-row keys alone should be
+         * enough — but reconciling two structurally-different fine-grained
+         * keyed lists back-to-back (each DepartureRow is a memoized
+         * Fragment with a variable 1–2 DOM children) was empirically found
+         * to leave orphaned DOM nodes behind that React's own fiber tree no
+         * longer references — confirmed via direct fiber-tree inspection:
+         * the reconciled tree was always correct, but the real DOM
+         * accumulated extra untracked rows from a previously-visited
+         * station on every revisit. This outer key sidesteps that
+         * incremental path entirely for cross-station switches, at the
+         * cost of only ever skipping DepartureRow's memoized re-render
+         * within one station's own poll-to-poll updates (unaffected, still
+         * covered by DepartureRow's `areEqual` — see docs/ARCHITECTURE.md). */}
+        <Fragment key={currentStation.id}>
+          {visibleRows.length === 0 && error ? (
+            <div className={styles.status}>Unable to load stationboard.</div>
+          ) : (
+            visibleRows.map((row) => <DepartureRow key={row.id} row={row} />)
+          )}
+        </Fragment>
       </div>
       <div className={styles.sizerWrapper}>
         {/* Rendered outside the real grid, so it has no parent grid to

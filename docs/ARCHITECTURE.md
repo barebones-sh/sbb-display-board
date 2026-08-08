@@ -25,6 +25,10 @@ Fetched stationboard data specifically lives in
 [useStationboard](../src/hooks/useStationboard.ts), scoped to `Board`, not
 in the global context — nothing else in the app needs it, and keeping it
 out of the reducer keeps that reducer's job purely "user configuration."
+Within that hook, entries and errors are cached per station (keyed by the
+stable `SavedStation.id`), not in one shared buffer, so switching stations
+shows that station's last-known rows immediately — never the previous
+station's — while a fresh fetch is in flight.
 
 ## Why polling + diffing, not WebSockets
 
@@ -38,11 +42,17 @@ slow response can't land after a newer one.
 that. What actually gets skipped on an unrelated poll tick is a row's own
 re-render *work*:
 
-1. Each row's React `key` is a stable id (`category+number+departureTimestamp`,
+1. Each row's React `key` is a stable id (`stationId+category+number+departureTimestamp`,
    built in [mapStationboard.ts](../src/api/mapStationboard.ts)), so as long
    as the same physical service is still in the fetched window, React
    reconciliation reuses its existing component instance rather than
-   unmounting/remounting it.
+   unmounting/remounting it. The row list itself is also wrapped in a
+   `<Fragment key={currentStation.id}>` in [Board.tsx](../src/components/Board/Board.tsx)
+   — switching stations was found (via direct fiber-tree inspection) to
+   leave orphaned DOM nodes behind when React reconciled two stations' row
+   lists row-by-row instead of fully remounting; the outer key forces a
+   clean remount on every station switch and confines the row-by-row
+   reconciliation this section describes to polls *within* one station.
 2. [DepartureRow](../src/components/DepartureRow/DepartureRow.tsx) is
    wrapped in `React.memo` with a comparator that checks only the fields
    that affect rendering (time, destination, platform, delay, cancelled,

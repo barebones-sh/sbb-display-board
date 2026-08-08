@@ -21,12 +21,19 @@ function findRerouteText(destination: string, language: Language): string | null
  *    not from any real per-train field — the API has none. It's only
  *    populated for cancelled rows since there's no "rerouted but running"
  *    signal to key off either.
+ *
+ * `stationId` namespaces every row's id to the station it was fetched for.
+ * Not load-bearing today (useStationboard caches entries per station, so
+ * two stations' entries never share one array), but it's a cheap guard
+ * against a future regression reintroducing a shared list where two
+ * stations' ids could otherwise collide.
  */
 export function mapStationboard(
   entries: StationboardEntry[],
   language: Language,
+  stationId: string,
 ): DisplayRow[] {
-  return entries.map((entry) => {
+  return entries.map((entry, index) => {
     const { stop } = entry;
     const scheduled = stop.departure ?? stop.arrival;
     const time = scheduled ? formatHHMM(new Date(scheduled)) : "--:--";
@@ -39,10 +46,15 @@ export function mapStationboard(
       .map((point) => point.station.name)
       .filter((name): name is string => Boolean(name));
 
-    const timestamp = stop.departureTimestamp ?? stop.arrivalTimestamp ?? 0;
+    // Falls back to the entry's position in the response, not a fixed
+    // constant, so two entries in the same response that both lack
+    // timestamps still get distinct ids instead of silently colliding
+    // (this id then isn't stable across polls for such rows — acceptable,
+    // since the previous `?? 0` behavior was strictly worse).
+    const timestamp = stop.departureTimestamp ?? stop.arrivalTimestamp ?? `none-${index}`;
 
     return {
-      id: `${entry.category}${entry.number}-${timestamp}`,
+      id: `${stationId}:${entry.category}${entry.number}-${timestamp}`,
       lineCategory: entry.category,
       lineNumber: entry.number,
       lineLabel: `${entry.category}${entry.number}`,
