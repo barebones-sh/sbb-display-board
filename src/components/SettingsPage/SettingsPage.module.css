@@ -1,4 +1,6 @@
 .page {
+  display: flex;
+  flex-direction: column;
   min-height: 100%;
   padding: 2rem;
   background: var(--color-bg-row);
@@ -162,4 +164,32 @@
   min-width: 3rem;
   text-align: right;
   font-variant-numeric: tabular-nums;
+}
+
+.footer {
+  margin-top: auto;
+  padding-top: 2rem;
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--color-white);
+}
+
+.footerLinks {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.35rem;
+}
+
+.footerLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2em;
+  color: var(--color-white);
+  text-decoration: underline;
+}
+
+.newTabIcon {
+  width: 0.8em;
+  height: 0.8em;
+  fill: currentColor;
 }
