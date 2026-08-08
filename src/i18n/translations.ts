@@ -11,7 +11,7 @@ import type { Language } from "../types/appState";
  */
 const en: Dictionary = {
   columnDestination: "Destination",
-  columnTrack: "Pl.",
+  columnTrack: "Platform",
   columnRemarks: "Remarks",
   via: "via",
   disruptionLabel: "Disruption:",
