@@ -7,10 +7,18 @@
   overflow: hidden;
 }
 
-.rows {
+/* The single shared grid HeaderBar and every DepartureRow subgrid into —
+ * this is what lets column widths auto-size to the widest content actually
+ * present in each column (across the header and every row) instead of
+ * needing hand-tuned widths kept in sync by hand. Destination is the only
+ * flexible (`fr`) track, so it's the one that shrinks first under pressure;
+ * the rest size to their content's max-content width. */
+.grid {
   flex: 1;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr) max-content var(--col-sector) max-content;
+  column-gap: var(--row-gap);
+  align-content: start;
   overflow: hidden;
 }
 
@@ -24,9 +32,18 @@
   pointer-events: none;
 }
 
-.empty,
-.status {
+.empty {
   flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2em;
+  text-align: center;
+  font-size: 1.2em;
+}
+
+.status {
+  grid-column: 1 / -1;
   display: flex;
   align-items: center;
   justify-content: center;

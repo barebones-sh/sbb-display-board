@@ -1,13 +1,19 @@
 .badge {
   display: inline-flex;
+  flex: none;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 0.15em;
-  min-width: 2.6em;
-  height: 1.5em;
-  padding: 0 0.35em;
-  border-radius: 0.18em;
-  font-size: 0.85em;
+  width: 3.25em;
+  height: 1.05em;
+  padding: 0em 0.1em;
+  border-radius: 0;
+  overflow: hidden;
+  /* Exactly matches the row's own text size (.lead inherits .row's font-size
+   * unchanged) — the label reads bigger only because the box around it is
+   * taller/padded, never because its text outgrows the rest of the row. */
+  font-size: 1em;
+  line-height: 1;
   font-weight: 800;
   letter-spacing: 0.01em;
   white-space: nowrap;
@@ -16,13 +22,11 @@
 .sbahn {
   background: var(--color-badge-sbahn-bg);
   color: var(--color-badge-sbahn-text);
-  border: 0.06em solid var(--color-badge-sbahn-text);
 }
 
 .regio {
   background: var(--color-badge-regio-bg);
   color: var(--color-badge-regio-text);
-  border: 0.06em solid var(--color-badge-regio-text);
 }
 
 .intercity {
@@ -33,7 +37,6 @@
 .default {
   background: var(--color-badge-default-bg);
   color: var(--color-badge-default-text);
-  border: 0.06em solid var(--color-badge-default-text);
 }
 
 /*

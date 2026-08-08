@@ -74,8 +74,12 @@ export function Board() {
   return (
     <div className={styles.board} ref={containerRef}>
       <DisruptionBanner ref={bannerRef} />
-      <HeaderBar ref={headerRef} />
-      <div className={styles.rows}>
+      {/* HeaderBar and every DepartureRow are direct children here so they
+       * can all subgrid into this one grid's columns — see .grid in
+       * Board.module.css for why that's what makes column widths
+       * auto-size to content instead of needing hand-tuned constants. */}
+      <div className={styles.grid}>
+        <HeaderBar ref={headerRef} />
         {visibleRows.length === 0 && error ? (
           <div className={styles.status}>Unable to load stationboard.</div>
         ) : (
@@ -83,8 +87,12 @@ export function Board() {
         )}
       </div>
       <div className={styles.sizerWrapper}>
+        {/* Rendered outside the real grid, so it has no parent grid to
+         * subgrid into — `standalone` gives it a self-contained column
+         * template instead. Row height doesn't depend on column widths
+         * (nothing wraps), so this still measures a representative height. */}
         <div ref={rowSizerRef}>
-          <DepartureRow row={SIZER_ROW} />
+          <DepartureRow row={SIZER_ROW} standalone />
         </div>
       </div>
     </div>

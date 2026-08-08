@@ -1,14 +1,33 @@
-.rowWrapper {
-  border-bottom: 0.09em solid var(--color-divider);
-}
-
 .row {
   display: grid;
-  grid-template-columns: var(--row-grid);
+  grid-template-columns: subgrid;
+  grid-column: 1 / -1;
   align-items: center;
-  gap: 0.5em;
-  padding: 0.6em 1em;
-  font-size: 1.3em;
+  /* column-gap inherited from the outer .grid (Board.module.css) — not
+   * redeclared here, so every row's gap is identical by construction. */
+  padding: var(--row-padding-y) var(--row-padding-x);
+  /* Matches what the badge briefly rendered at on its own (1.3em on top of
+   * the old 1.3em row size) — instead of shrinking the badge back down to
+   * the rest of the row, the rest of the row grows up to it, so everything
+   * in the row (time, destination, platform, remarks, badge) reads at one
+   * consistent, larger size. */
+  font-size: 1.69em;
+  /* The divider between rows. rem (not em) so its thickness doesn't shift
+   * with .row's own font-size — it's the same 0.04rem as .reroute's below.
+   * Suppressed (.noDivider) when a .reroute line follows, since that one
+   * carries the divider instead — see DepartureRow.tsx. */
+  border-bottom: 0.04rem solid var(--color-divider);
+}
+
+/* Only used for Board.tsx's off-screen sizer row, which has no parent grid
+ * to subgrid columns from. A plain, self-contained column template so it
+ * still lays out (and therefore measures) like a real row. */
+.standalone {
+  grid-template-columns: max-content minmax(0, 1fr) max-content var(--col-sector) max-content;
+}
+
+.noDivider {
+  border-bottom: none;
 }
 
 .lead {
@@ -19,6 +38,7 @@
 }
 
 .time {
+  flex: none;
   font-weight: 800;
 }
 
@@ -64,32 +84,38 @@
 }
 
 .sector {
-  margin-left: 0.35em;
-  font-size: 0.7em;
+  text-align: left;
   font-weight: 800;
+  white-space: nowrap;
 }
 
 .remarks {
-  text-align: right;
+  text-align: left;
   white-space: nowrap;
 }
 
 .delayText {
   color: var(--color-delay-text);
-  font-weight: 700;
+  font-weight: 400;
 }
 
 .cancelTag {
-  display: inline-block;
+  display: block;
+  width: 100%;
   padding: 0.15em 0.5em;
   background: var(--color-cancel-bg);
   color: var(--color-white);
   font-weight: 700;
+  text-align: left;
 }
 
 .reroute {
+  grid-column: 1 / -1;
   padding: 0 1em 0.6em;
   color: var(--color-delay-text);
   font-weight: 400;
   font-size: 1em;
+  /* Carries the divider instead of .row when it's rendered — see
+   * DepartureRow.tsx's .noDivider. Same 0.04rem as .row's for a match. */
+  border-bottom: 0.04rem solid var(--color-divider);
 }

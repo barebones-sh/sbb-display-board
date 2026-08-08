@@ -1,8 +1,11 @@
 .header {
   display: grid;
-  grid-template-columns: var(--row-grid);
+  grid-template-columns: subgrid;
+  grid-column: 1 / -1;
   align-items: center;
-  padding: 0.5em 1em;
+  /* column-gap inherited from the outer .grid (Board.module.css) — not
+   * redeclared here, so header and rows can never drift out of sync. */
+  padding: var(--row-padding-y) var(--row-padding-x);
   background: var(--color-header-bg);
   color: var(--color-header-text);
   font-size: 1.1em;
@@ -17,7 +20,10 @@
   text-align: left;
 }
 
-.track,
-.remarks {
+.track {
   text-align: right;
+}
+
+.remarks {
+  text-align: left;
 }

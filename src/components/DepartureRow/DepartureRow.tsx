@@ -6,6 +6,10 @@ import styles from "./DepartureRow.module.css";
 
 interface DepartureRowProps {
   row: DisplayRow;
+  /** True only for the off-screen sizer instance in Board.tsx, which has no
+   * parent grid to subgrid its columns into. Swaps .row to a self-contained
+   * column template instead — see DepartureRow.module.css's .standalone. */
+  standalone?: boolean;
 }
 
 function AirplaneIcon() {
@@ -16,12 +20,20 @@ function AirplaneIcon() {
   );
 }
 
-function DepartureRowImpl({ row }: DepartureRowProps) {
+function DepartureRowImpl({ row, standalone = false }: DepartureRowProps) {
   const { t } = useTranslation();
 
+  // .row and (when present) .reroute must be direct children of the shared
+  // grid to subgrid into it — no wrapper div here (a wrapper would sit
+  // between them and the grid). The divider border lives on whichever one
+  // is visually last: .reroute when there is one, .row otherwise.
+  const rowClassName = [styles.row, standalone && styles.standalone, row.rerouteText && styles.noDivider]
+    .filter(Boolean)
+    .join(" ");
+
   return (
-    <div className={styles.rowWrapper}>
-      <div className={styles.row}>
+    <>
+      <div className={rowClassName}>
         <span className={styles.lead}>
           <LineBadge category={row.lineCategory} number={row.lineNumber} />
           <span className={styles.time}>{row.time}</span>
@@ -42,10 +54,12 @@ function DepartureRowImpl({ row }: DepartureRowProps) {
           )}
         </span>
 
-        <span className={styles.platform}>
-          {row.platformTrack}
-          {row.platformSector && <span className={styles.sector}>{row.platformSector}</span>}
-        </span>
+        <span className={styles.platform}>{row.platformTrack}</span>
+
+        {/* Always rendered, even when there's no sector for this row —
+         * it's its own fixed-width column now, so it must always occupy
+         * that 4th cell for the subgrid to stay aligned across rows. */}
+        <span className={styles.sector}>{row.platformSector}</span>
 
         <span className={styles.remarks}>
           {row.cancelled ? (
@@ -59,7 +73,7 @@ function DepartureRowImpl({ row }: DepartureRowProps) {
       </div>
 
       {row.rerouteText && <div className={styles.reroute}>{row.rerouteText}</div>}
-    </div>
+    </>
   );
 }
 

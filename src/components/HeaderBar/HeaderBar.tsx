@@ -19,6 +19,9 @@ export const HeaderBar = forwardRef<HTMLDivElement>(function HeaderBar(_props, r
       <span className={styles.clock}>{formatHHMMSS(now)}</span>
       <span className={styles.destination}>{t("columnDestination")}</span>
       <span className={styles.track}>{t("columnTrack")}</span>
+      {/* No label — exists only so this subgrid's 5th column lines up with
+       * every row's dedicated sector column beneath it. */}
+      <span aria-hidden="true" />
       <span className={styles.remarks}>{t("columnRemarks")}</span>
     </div>
   );
