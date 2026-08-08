@@ -6,7 +6,7 @@ not the classic split-flap one. Built with Vite, React, and TypeScript,
 fetching live departure/arrival data directly from the public
 [transport.opendata.ch](https://transport.opendata.ch) API.
 
-![Board showing live departures from Bern, fetched from transport.opendata.ch](docs/screenshot.png)
+![Board showing live departures from Geneva, fetched from transport.opendata.ch](docs/screenshot.png)
 
 ## Status
 
