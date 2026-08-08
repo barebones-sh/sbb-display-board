@@ -1,0 +1,61 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: Production
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Connect to tailnet
+        uses: tailscale/github-action@v3
+        with:
+          oauth-client-id: ${{ secrets.TAILSCALE_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TAILSCALE_OAUTH_CLIENT_SECRET }}
+          tags: tag:ci
+
+      # Separate from the compose step below so the two API keys travel
+      # only over the ssh stdin stream (this heredoc), never as a
+      # command-line arg, and don't need escaping alongside anything else.
+      - name: Write .env on the server
+        env:
+          SSH_HOST: ${{ vars.SSH_HOST }}
+          SSH_USER: ${{ vars.SSH_USER }}
+          PORT: ${{ vars.PORT }}
+          OTD_API_KEY_SIRI_SX: ${{ secrets.OTD_API_KEY_SIRI_SX }}
+          OTD_API_KEY_SIRI_SX_UNPLANNED: ${{ secrets.OTD_API_KEY_SIRI_SX_UNPLANNED }}
+        run: |
+          ssh -o StrictHostKeyChecking=accept-new "$SSH_USER@$SSH_HOST" \
+            "mkdir -p ~/sbb-display-board && cat > ~/sbb-display-board/.env" <<EOF
+          PORT=$PORT
+          OTD_API_KEY_SIRI_SX=$OTD_API_KEY_SIRI_SX
+          OTD_API_KEY_SIRI_SX_UNPLANNED=$OTD_API_KEY_SIRI_SX_UNPLANNED
+          EOF
+
+      - name: Clone or pull, then docker compose up
+        env:
+          SSH_HOST: ${{ vars.SSH_HOST }}
+          SSH_USER: ${{ vars.SSH_USER }}
+        run: |
+          ssh -o StrictHostKeyChecking=accept-new "$SSH_USER@$SSH_HOST" bash -s <<'REMOTE'
+          set -euo pipefail
+          REPO_DIR="$HOME/sbb-display-board"
+          if [ -d "$REPO_DIR/.git" ]; then
+            git -C "$REPO_DIR" fetch origin main
+            git -C "$REPO_DIR" reset --hard origin/main
+          else
+            git clone https://github.com/barebones-sh/sbb-display-board.git "$REPO_DIR"
+          fi
+          docker compose -f "$REPO_DIR/docker-compose.yml" up -d --build
+          REMOTE

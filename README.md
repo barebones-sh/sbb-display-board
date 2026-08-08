@@ -52,6 +52,20 @@ different default out of the box, edit `DEFAULT_STATE` in
 [src/context/AppStateContext.tsx](src/context/AppStateContext.tsx) and add
 a station to `savedStations`.
 
+## Deployment
+
+Production runs in a single Docker container on the author's home server
+(port 8082, behind a Cloudflare Tunnel). Pushing to `main` triggers
+[.github/workflows/deploy.yml](.github/workflows/deploy.yml), which joins
+the tailnet via Tailscale and runs `docker compose up -d --build` on the
+server over Tailscale SSH — no manual deploy steps.
+
+To run the same container locally:
+
+```bash
+docker compose up --build
+```
+
 ## Learn more
 
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): how the pieces fit together
