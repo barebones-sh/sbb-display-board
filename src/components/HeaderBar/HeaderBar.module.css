@@ -1,0 +1,23 @@
+.header {
+  display: grid;
+  grid-template-columns: var(--row-grid);
+  align-items: center;
+  padding: 0.5em 1em;
+  background: var(--color-header-bg);
+  color: var(--color-header-text);
+  font-size: 1.1em;
+  font-weight: 700;
+}
+
+.clock {
+  font-variant-numeric: tabular-nums;
+}
+
+.destination {
+  text-align: left;
+}
+
+.track,
+.remarks {
+  text-align: right;
+}

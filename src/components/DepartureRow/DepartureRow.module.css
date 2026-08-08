@@ -1,0 +1,95 @@
+.rowWrapper {
+  border-bottom: 0.09em solid var(--color-divider);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: var(--row-grid);
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.6em 1em;
+  font-size: 1.3em;
+}
+
+.lead {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6em;
+  min-width: 0;
+}
+
+.time {
+  font-weight: 800;
+}
+
+.destination {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45em;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.destName {
+  font-weight: 800;
+  flex: none;
+}
+
+.airplane {
+  flex: none;
+  width: 0.75em;
+  height: 0.75em;
+  fill: var(--color-white);
+  align-self: center;
+}
+
+.viaLabel {
+  flex: none;
+  font-weight: 400;
+  color: var(--color-via-text);
+}
+
+.viaStop {
+  flex: none;
+  font-weight: 400;
+  color: var(--color-via-text);
+}
+
+.platform {
+  text-align: right;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.sector {
+  margin-left: 0.35em;
+  font-size: 0.7em;
+  font-weight: 800;
+}
+
+.remarks {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.delayText {
+  color: var(--color-delay-text);
+  font-weight: 700;
+}
+
+.cancelTag {
+  display: inline-block;
+  padding: 0.15em 0.5em;
+  background: var(--color-cancel-bg);
+  color: var(--color-white);
+  font-weight: 700;
+}
+
+.reroute {
+  padding: 0 1em 0.6em;
+  color: var(--color-delay-text);
+  font-weight: 400;
+  font-size: 1em;
+}

@@ -1,0 +1,165 @@
+.page {
+  min-height: 100%;
+  padding: 2rem;
+  background: var(--color-bg-row);
+  color: var(--color-white);
+  font-size: 16px;
+  font-weight: 400;
+  overflow-y: auto;
+}
+
+.header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin: 0;
+}
+
+.backLink {
+  color: var(--color-delay-text);
+  text-decoration: underline;
+}
+
+.section {
+  max-width: 32rem;
+  margin: 0 0 2rem;
+}
+
+.sectionTitle {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0 0 0.75rem;
+}
+
+.stationList {
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.stationRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.25rem;
+}
+
+.stationName {
+  flex: 1;
+}
+
+.iconButton {
+  background: rgba(255, 255, 255, 0.12);
+  border: none;
+  color: var(--color-white);
+  border-radius: 0.2rem;
+  padding: 0.3rem 0.55rem;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.iconButton:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.removeButton {
+  composes: iconButton;
+  color: var(--color-delay-text);
+}
+
+.searchWrap {
+  position: relative;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-white);
+  font-size: 1rem;
+}
+
+.searchResults {
+  position: absolute;
+  z-index: 1;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 0.25rem;
+  background: #23255f;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 0.25rem;
+  max-height: 12rem;
+  overflow-y: auto;
+}
+
+.searchResultButton {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  background: none;
+  border: none;
+  color: var(--color-white);
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.searchResultButton:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.fieldRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.fieldLabel {
+  min-width: 8rem;
+}
+
+.select,
+.rangeInput {
+  font-size: 1rem;
+}
+
+.select {
+  padding: 0.35rem 0.5rem;
+  border-radius: 0.25rem;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-white);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.radioGroup {
+  display: flex;
+  gap: 1rem;
+}
+
+.radioLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.intervalValue {
+  min-width: 3rem;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}

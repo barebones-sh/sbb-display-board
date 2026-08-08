@@ -1,0 +1,53 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15em;
+  min-width: 2.6em;
+  height: 1.5em;
+  padding: 0 0.35em;
+  border-radius: 0.18em;
+  font-size: 0.85em;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.sbahn {
+  background: var(--color-badge-sbahn-bg);
+  color: var(--color-badge-sbahn-text);
+  border: 0.06em solid var(--color-badge-sbahn-text);
+}
+
+.regio {
+  background: var(--color-badge-regio-bg);
+  color: var(--color-badge-regio-text);
+  border: 0.06em solid var(--color-badge-regio-text);
+}
+
+.intercity {
+  background: var(--color-badge-intercity-bg);
+  color: var(--color-badge-intercity-text);
+}
+
+.default {
+  background: var(--color-badge-default-bg);
+  color: var(--color-badge-default-text);
+  border: 0.06em solid var(--color-badge-default-text);
+}
+
+/*
+ * Approximates the real SBB slanted IC/IR/EC pictogram wordmark with plain
+ * CSS (skew + italic) rather than a real logo asset. Not aiming for pixel
+ * fidelity — see docs/ROADMAP.md for the deferred real-glyph pass.
+ */
+.wordmark {
+  display: inline-block;
+  transform: skewX(-12deg);
+  font-style: italic;
+  font-weight: 900;
+}
+
+.number {
+  font-weight: 800;
+}

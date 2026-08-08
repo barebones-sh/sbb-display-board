@@ -1,0 +1,71 @@
+/*
+ * Colors below are sampled directly from the /docs reference images (pixel
+ * color-picked during bootstrap), not guessed. See docs/ARCHITECTURE.md for
+ * how the responsive scale (--fs-root) drives every component dimension.
+ */
+:root {
+  /* vmin-clamped root size: scales the whole board proportionally on any
+   * viewport instead of reflowing content density. Every component sizes
+   * itself in rem/em against this. Set here (not on body) since `rem`
+   * always resolves against the root element's font-size. */
+  --fs-root: clamp(10px, 1.8vmin, 56px);
+  font-size: var(--fs-root);
+
+  --color-bg-row: #2e317c;
+  --color-header-bg: #e6e6e6;
+  --color-header-text: #2e317c;
+  --color-disruption-bg: #eb0000;
+  --color-delay-text: #ffe117;
+  --color-cancel-bg: #eb0000;
+  --color-divider: #e6e6e6;
+
+  --color-badge-sbahn-bg: #ffffff;
+  --color-badge-sbahn-text: #000000;
+  --color-badge-regio-bg: #ffffff;
+  --color-badge-regio-text: #eb0000;
+  --color-badge-intercity-bg: #eb0000;
+  --color-badge-intercity-text: #ffffff;
+  --color-badge-default-bg: #ffffff;
+  --color-badge-default-text: #2e317c;
+
+  --color-via-text: #b7b9d9;
+  --color-white: #ffffff;
+
+  /* Shared column widths (rem-based, so they scale with --fs-root) — used
+   * by both HeaderBar and DepartureRow so header labels line up with the
+   * columns beneath them without duplicating a grid template in two files. */
+  --col-lead: 8.5rem;
+  --col-platform: 3.5rem;
+  --col-remarks: 12rem;
+  --row-grid: var(--col-lead) 1fr var(--col-platform) var(--col-remarks);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family:
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
+  font-weight: 700;
+  background: var(--color-bg-row);
+  color: var(--color-white);
+  overflow: hidden;
+}
+
+button,
+input,
+select {
+  font-family: inherit;
+}
