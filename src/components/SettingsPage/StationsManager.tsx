@@ -14,7 +14,13 @@ export function StationsManager() {
     const name = result.name!;
     dispatch({
       type: "ADD_STATION",
-      station: { id: crypto.randomUUID(), name, apiStationName: name, icon: result.icon },
+      station: {
+        id: crypto.randomUUID(),
+        name,
+        apiStationName: name,
+        icon: result.icon,
+        locationId: result.id,
+      },
     });
     setQuery("");
   };

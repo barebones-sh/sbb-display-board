@@ -4,6 +4,10 @@ export type Language = "en" | "fr" | "de" | "it";
 export { type ViewMode };
 
 export interface SavedStation {
+  /** Locally-generated (`crypto.randomUUID()`), stable across renames —
+   * this app's own identity for the saved entry (React keys, cache keys in
+   * useStationboard, etc). **Not** a transport API id of any kind — see
+   * `locationId` below for that. */
   id: string;
   /** Display name shown in the settings list — may differ from apiStationName
    * if we ever want a friendlier label; today they're set equal on add. */
@@ -16,6 +20,15 @@ export interface SavedStation {
    * icon — treated as a train station for `trainsOnly` filtering purposes,
    * matching prior (unconditional) behavior. */
   icon: string | null;
+  /** `LocationResult.id` from `/v1/locations` at add-time — a UIC/DIDOK
+   * station number (e.g. Bern is `8507000`), confirmed by hand against a
+   * live request. Distinct from `id` above on purpose: `id` is this app's
+   * own local identity and was wrongly assumed (in an earlier pass) to be
+   * interchangeable with the API's station id, which broke the disruption
+   * feed — see docs/DATA.md. `null` for stations saved before this field
+   * existed; the disruption banner simply has nothing to match for those
+   * until removed and re-added. */
+  locationId: string | null;
 }
 
 export interface AppState {

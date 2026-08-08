@@ -14,6 +14,15 @@ Both from the free, unauthenticated [transport.opendata.ch](https://transport.op
 Neither requires an API key. No backend of ours sits in front of them —
 the browser calls them directly.
 
+**The disruption banner is the one exception.** It's backed by
+opentransportdata.swiss's SIRI-SX API, which needs a secret Bearer key and
+has tight per-key rate limits — the browser can't call it directly, so
+[server/](../server) is a small local proxy that holds the key and does the
+rate-limited polling, exposing one keyless endpoint
+(`GET /api/disruptions?stationId=`) for the frontend to poll freely. See
+"Live disruption feed" below for the full design, and
+[README.md](../README.md) for how to run it alongside `npm run dev`.
+
 ## Response shape assumptions
 
 The official docs for this API are thin, so the shapes in
@@ -53,30 +62,106 @@ and read defensively (`stop.cancelled === true`) in
 verified against a real cancelled service — if cancellation never shows up
 in practice, this is the first place to check.
 
-### No disruption/perturbation feed
+### Live disruption feed (SIRI-SX)
 
-The biggest gap. transport.opendata.ch has no endpoint for service
-disruptions — the red banner at the top of the board (with its own label,
-wrapped description, and pagination dots) has no live data source in this
-API at all.
+Solved. transport.opendata.ch itself has no disruption endpoint, but the
+red banner at the top of the board is now backed by real data from
+opentransportdata.swiss's `siri-sx` API (VDV736 incident model, XML) via
+[server/](../server), a small local proxy — required because `siri-sx`
+needs a secret Bearer key and has tight per-key rate limits, unlike every
+other endpoint this app calls.
 
-**What was tried/considered:**
-- Searched the transport.opendata.ch docs and response shapes for anything
-  disruption-adjacent — nothing found.
-- The most promising lead not yet evaluated:
-  [opentransportdata.swiss](https://opentransportdata.swiss/), the Swiss
-  open transport data platform (run by the same body behind SBB's own
-  systems), which is understood to publish a service-alerts/disruptions
-  feed. It requires registration for an API key, which is why it wasn't
-  wired up during this bootstrap — needs someone to register, inspect the
-  real response shape, and confirm it actually covers the kind of
-  regional-disruption text shown in the `/docs` reference images before
-  building against it.
+**Two endpoints, two separate API keys.** `siri-sx` and `siri-sx-unplanned`
+are different products in `api-manager.opentransportdata.swiss` — each
+needs its own key (confirmed by testing: a key that works against one gets
+`403 Access to this API has been disallowed` against the other). `.env`
+holds both: `OTD_API_KEY_SIRI_SX` and `OTD_API_KEY_SIRI_SX_UNPLANNED`. Auth
+itself is a plain `Authorization: Bearer <key>` header — no other secret
+from the portal (e.g. the "Token Hash" shown alongside the key) is needed.
 
-**What's mocked today:** [src/mock/disruptions.ts](../src/mock/disruptions.ts)
-— sample banner text (adapted into all four UI languages from the real
-wording visible in the reference images) plus, separately, sample per-row
-rerouting instructions (the yellow sub-row under a cancelled service).
+They're polled differently, matching the platform's own guidance and this
+project's original ask about polling one endpoint often and the other
+rarely:
+
+- `siri-sx-unplanned` — the live-incident source (the kind of text
+  originally mocked: a power fault, a vehicle-on-the-tracks incident).
+  Polled every 45s (rate limit: 2 req/min, 3,000/day). Confirmed live: of a
+  1,463-situation snapshot from the *complete* feed, zero were
+  `Planned=false` — the complete feed alone essentially never shows genuine
+  live incidents, only the unplanned one reliably does.
+- `siri-sx` (complete) — polled every 4 hours as a reconciliation pass
+  (rate limit: 10 req/hour, 48/day) — a superset that's mostly planned
+  engineering-work notices, per the platform's own "not for frequent
+  polling" guidance for this endpoint.
+
+Both feeds are merged and deduplicated by `SituationNumber` when serving a
+station (see `disruptionsForStation` in
+[server/index.ts](../server/index.ts)) — the same incident can legitimately
+appear in both.
+
+**Station matching needs a translation layer — confirmed by hand, not
+assumed.** `SavedStation.id` is `LocationResult.id` from
+`transport.opendata.ch/v1/locations`, a UIC/DIDOK number (Bern `8507000`).
+Grepping a real `siri-sx` snapshot for several major stations' UIC codes
+found **none** of them — Swiss stops in `siri-sx` are identified by `sloid`
+(`ch:1:sloid:7000`) instead. (Bare numeric refs that *do* appear turned out
+to be **foreign** UIC codes on cross-border lines — sloid is Switzerland-only,
+so foreign stops fall back to UIC, e.g. `8011068` → Frankfurt Hbf.) The
+fix: opentransportdata.swiss's **Service Point v2** dataset — a free,
+keyless, daily CSV — maps sloid ↔ UIC directly (its Bern row is literally
+`sloid=ch:1:sloid:7000;number=8507000`).
+[server/servicePoints.ts](../server/servicePoints.ts) loads it once at
+startup and refreshes it roughly daily.
+
+**Two different situation shapes in the real feed — also confirmed by
+hand, and this one mattered a lot.** A first pass only handled the simpler
+shape (top-level `Summary`/`Affects` directly on `PtSituationElement`,
+used by SBB's own "EMS" source) and silently dropped **83% of real
+situations** — the majority actually come from regional operators (e.g.
+PostAuto AG) using a richer shape: stop refs nested under
+`PublishingActions > PublishingAction > PublishAtScope > Affects`, and text
+split across `TextualContent`'s `SummaryContent`/`ReasonContent`/
+`ConsequenceContent`/`DurationContent` (each a `*Text` element per
+language) instead of one `Summary`. [server/siriSx.ts](../server/siriSx.ts)
+handles both by walking the whole situation for known tag names rather than
+assuming one fixed path — robust to a third shape appearing later too,
+as long as it reuses the same element names (a safe bet, since these are
+standard SIRI/VDV736 element names, not one operator's invention).
+
+`Summary`/`SummaryText` is required in all four UI languages for a
+situation to be used at all (`DisruptionBanner` needs *some* text for
+whatever language is selected); `Reason`/`Consequence`/`Duration` are
+appended when present, closely matching the mocked text's own
+reason-then-consequence-then-duration shape — confirmed live, e.g. a real
+Bern-affecting incident renders as *"Interrupted service: Gümligen -
+Wichtrach Reason: accident involving a person Allow for delays and
+cancellations Duration: Until 09.08.2026, approx. 01:00"*.
+
+"No disturbance signaled for a station → don't show the banner" was already
+how `DisruptionBanner` behaved
+(`if (disruptions.length === 0) return null;` in
+[DisruptionBanner.tsx](../src/components/DisruptionBanner/DisruptionBanner.tsx))
+— confirmed against the live proxy: an unaffected station's
+`/api/disruptions` call returns `[]`.
+
+**Not pursued:** `gtfs-sa` (GTFS-RT Service Alerts, protobuf) was evaluated
+early on and ruled out in favor of `siri-sx` — XML is simpler to parse than
+protobuf, and `siri-sx`'s own two-endpoint split maps directly onto the
+"poll one often, one rarely" requirement, where `gtfs-sa` only has one flat
+rate limit.
+
+**Known limitation, not a bug:** a busy interchange (Bern) can have dozens
+of legitimately-relevant situations at once (many lines converge there),
+so the banner's rotation can be long at such stations — this reflects real
+network-wide advisory volume, not over-broad matching; not addressed
+further since it wasn't part of the original ask.
+
+**What's mocked (for now) alongside the real feed:**
+[src/mock/disruptions.ts](../src/mock/disruptions.ts) stays in the repo as
+a fixture/fallback for offline dev — sample banner text plus, separately,
+sample per-row rerouting instructions (the yellow sub-row under a cancelled
+service, see below) — but is no longer the default wired into
+`DisruptionBanner`.
 
 ### No per-row rerouting text field either
 
@@ -88,8 +173,16 @@ case-insensitive substring match on destination name — a real source would
 presumably key off a trip/journey id instead, which this app doesn't have
 a mock analogue for.
 
-**Next steps for whoever picks this up:** register for
-opentransportdata.swiss, check whether its alerts feed covers both the
-banner-level and (separately) the per-train rerouting use case, and if it
-covers only one of the two, document what still needs a different source
-for the other.
+**Next steps for whoever picks this up:** the real `siri-sx-unplanned`
+payload (see above) does carry an `AffectedVehicleJourney` element (114
+occurrences in one snapshot) nested under the same `Affects` subtree the
+banner code already walks — a plausible per-journey key for this, unlike
+anything `Summary`/`ReasonContent`/etc. offer. Not pursued in this pass
+(the original ask was specifically the banner), and it's still unconfirmed
+whether it carries separate rerouting-specific text or just identifies
+*which* journey a situation affects (in which case the situation's own
+`Summary`/`ConsequenceContent` text — already parsed by
+[server/siriSx.ts](../server/siriSx.ts) — might just need to be re-surfaced
+per-row instead of only in the banner, with no new parsing needed). Worth
+checking `AffectedVehicleJourney`'s actual sibling fields against a live
+payload before building either way.

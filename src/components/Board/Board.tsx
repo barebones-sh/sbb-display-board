@@ -2,6 +2,7 @@ import { Fragment, useMemo, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useAppState } from "../../context/AppStateContext";
 import { useStationboard } from "../../hooks/useStationboard";
+import { useDisruptions } from "../../hooks/useDisruptions";
 import { useVisibleRowCount } from "../../hooks/useVisibleRowCount";
 import { HeaderBar } from "../HeaderBar/HeaderBar";
 import { DisruptionBanner } from "../DisruptionBanner/DisruptionBanner";
@@ -39,6 +40,13 @@ export function Board() {
   // Memoized so useStationboard's cache-pruning effect only reruns on an
   // actual add/remove/reorder, not on every unrelated re-render.
   const savedStationIds = useMemo(() => savedStations.map((s) => s.id), [savedStations]);
+  // useDisruptions' cache is keyed by `locationId` (the transport API's own
+  // UIC/DIDOK id), not `SavedStation.id` (this app's local identity) — a
+  // separate list, filtering out stations saved before `locationId` existed.
+  const savedLocationIds = useMemo(
+    () => savedStations.map((s) => s.locationId).filter((id): id is string => id != null),
+    [savedStations],
+  );
 
   // The trainsOnly setting only makes sense at a train station — applying
   // it to a station that's itself a bus/tram/boat stop would hide the
@@ -56,6 +64,12 @@ export function Board() {
     refreshIntervalMs,
     effectiveTrainsOnly,
     savedStationIds,
+  );
+
+  const { disruptions } = useDisruptions(
+    currentStation?.locationId ?? null,
+    refreshIntervalMs,
+    savedLocationIds,
   );
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -88,7 +102,7 @@ export function Board() {
 
   return (
     <div className={styles.board} ref={containerRef}>
-      <DisruptionBanner ref={bannerRef} />
+      <DisruptionBanner ref={bannerRef} disruptions={disruptions} />
       {/* HeaderBar and every DepartureRow are direct children here so they
        * can all subgrid into this one grid's columns — see .grid in
        * Board.module.css for why that's what makes column widths

@@ -1,15 +1,21 @@
 import type { Language } from "../types/appState";
 
 /**
- * ⚠️ MOCK DATA — NOT A REAL FEED.
+ * ⚠️ MOCK DATA — kept as a fixture/fallback, no longer the default feed.
  *
- * transport.opendata.ch has no documented endpoint for service disruptions
- * or perturbations, and none was found during bootstrap research. Before
- * launch, someone needs to investigate a real source — opentransportdata.swiss
- * (the Swiss open transport data platform run by the same body behind SBB's
- * own systems) publishes a service-alerts/disruptions feed that's the most
- * likely candidate, but it requires registration and wasn't evaluated here.
- * See docs/DATA.md for what was tried and what to check next.
+ * transport.opendata.ch itself has no disruption endpoint, but
+ * `DisruptionBanner` is now wired to a real one: opentransportdata.swiss's
+ * `siri-sx` API via the local proxy in [server/](../../server) — see
+ * docs/DATA.md's "Live disruption feed (SIRI-SX)" section for the full
+ * design. This file's exports are no longer passed to `DisruptionBanner`
+ * by default in the running app (see src/components/Board/Board.tsx); it's
+ * kept around for offline dev and for exercising the banner's
+ * empty-state/multi-entry-rotation UI without waiting for a live
+ * disruption to exist somewhere on the network.
+ *
+ * Per-row rerouting text (the second export below) is a separate, still
+ * genuinely open gap — see docs/DATA.md's "No per-row rerouting text field
+ * either" section.
  *
  * Sample text below is adapted (translated across all four UI languages)
  * from the real wording visible in the /docs reference images, so the

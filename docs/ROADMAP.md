@@ -20,14 +20,24 @@ kiosk mode:
   [ARCHITECTURE.md](ARCHITECTURE.md) — a `gpioInputSource.ts` implementing
   the same `InputSource` interface is the whole job, no component changes.
 
-## Real disruption data source
+## Real disruption data source — done
 
-The disruption banner and per-row rerouting text are both mocked (see
-[DATA.md](DATA.md) for the full writeup). transport.opendata.ch has no
-field for either. opentransportdata.swiss's alerts feed is the leading
-candidate but requires registration and hasn't been evaluated against the
-real response shape yet. This blocks the disruption banner from ever being
-real data until someone does that legwork.
+The disruption banner is now backed by real data:
+opentransportdata.swiss's `siri-sx` (SIRI-SX/VDV736) API, fetched by a new
+small local proxy ([server/](../server)) since it needs a secret key and
+has rate limits the browser can't call directly against — see
+[DATA.md](DATA.md)'s "Live disruption feed (SIRI-SX)" section for the full
+design, including two real-data surprises worth knowing about before
+touching this code: station ids need translating (sloid ↔ UIC, via a
+published mapping dataset) and the feed has two different situation shapes
+depending on the publishing operator, not one.
+
+`gtfs-sa` was evaluated earlier and not pursued, per the same section.
+
+**Per-row rerouting text stays mocked** — independent gap, still open. A
+promising unconfirmed lead (`AffectedVehicleJourney` in the real payload)
+is noted in DATA.md's "No per-row rerouting text field either" section for
+whoever picks it up next.
 
 ## Line-badge accuracy pass
 
