@@ -68,7 +68,13 @@ function DepartureRowImpl({ row, standalone = false }: DepartureRowProps) {
             <span className={styles.cancelTag}>{t("cancelled")}</span>
           ) : row.delayMinutes ? (
             <span className={styles.delayText}>
-              {t("delayTemplate", { n: row.delayMinutes })}
+              {/* Both rendered; CSS toggles which is visible per viewport
+               * width — see .delayFull/.delayShort in DepartureRow.module.css.
+               * +N' needs no translation, unlike the full sentence. */}
+              <span className={styles.delayFull}>
+                {t("delayTemplate", { n: row.delayMinutes })}
+              </span>
+              <span className={styles.delayShort}>{`+${row.delayMinutes}'`}</span>
             </span>
           ) : null}
         </span>

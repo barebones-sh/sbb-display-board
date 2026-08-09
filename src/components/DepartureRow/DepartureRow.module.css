@@ -101,10 +101,42 @@
   font-weight: 400;
 }
 
+.delayShort {
+  display: none;
+}
+
+/* Only breakpoint in the codebase — everything else scales fluidly off
+ * --fs-root (see tokens.css). Below this width the full delay sentence
+ * ("Delay approx. N min") is what makes the remarks column too wide and
+ * crowds out the destination column, so it's swapped for the short "+N'"
+ * form used on real SBB boards regardless of language. */
+@media (max-width: 600px) {
+  .delayFull {
+    display: none;
+  }
+
+  .delayShort {
+    display: inline;
+  }
+
+  /* Via stops are the other big destination-column eater on narrow
+   * screens (see comment above) — dropped entirely on mobile rather
+   * than shortened, since there's no short form for a stop name. */
+  .viaLabel,
+  .viaStop {
+    display: none;
+  }
+}
+
 .cancelTag {
   display: block;
-  width: 100%;
-  padding: 0.15em 0.5em;
+  /* Remarks is already the last grid track and .board/.grid add no
+   * horizontal padding of their own (see tokens.css) — the only gap
+   * between this tag and the physical screen edge is .row's own
+   * --row-padding-x. Cancel it out here so the red bar bleeds flush to
+   * the edge while the text keeps its own inset via padding-right. */
+  margin-right: calc(-1 * var(--row-padding-x));
+  padding: 0.15em calc(var(--row-padding-x) + 0.5em) 0.15em 0.5em;
   background: var(--color-cancel-bg);
   color: var(--color-white);
   font-weight: 600;
