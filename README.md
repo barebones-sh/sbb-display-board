@@ -54,11 +54,9 @@ a station to `savedStations`.
 
 ## Deployment
 
-Production runs in a single Docker container on the author's home server
-(port 8082, behind a Cloudflare Tunnel). Pushing to `main` triggers
-[.github/workflows/deploy.yml](.github/workflows/deploy.yml), which joins
-the tailnet via Tailscale and runs `docker compose up -d --build` on the
-server over Tailscale SSH — no manual deploy steps.
+Production runs on Google Cloud, connected to this repo via Developer
+Connect: pushing to `main` builds the [Dockerfile](Dockerfile) and deploys
+it, with no manual deploy steps.
 
 To run the same container locally:
 

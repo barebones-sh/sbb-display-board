@@ -5,7 +5,7 @@ services:
     # the same file `env_file` below injects into the container. Default
     # matches server/index.ts's own fallback, so plain local testing
     # (no PORT line in .env) keeps host and container ports consistent;
-    # in production .env sets PORT=8082, moving both sides together.
+    # setting PORT in .env moves both sides together.
     ports:
       - "${PORT:-8787}:${PORT:-8787}"
     env_file: .env

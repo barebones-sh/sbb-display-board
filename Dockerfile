@@ -26,8 +26,9 @@ RUN npm ci --omit=dev
 COPY --from=build /app/dist ./dist
 COPY server ./server
 
-# No ENV/EXPOSE for PORT here — it's supplied at runtime via
-# docker-compose's `env_file: .env` (same convention as local dev's
-# `node --env-file=.env server/index.ts`), so this image has no fixed
-# opinion on the port and doesn't need rebuilding to change it.
+# No ENV/EXPOSE for PORT here — it's supplied at runtime (by the
+# platform in production, or docker-compose's `env_file: .env` locally,
+# same convention as `node --env-file=.env server/index.ts`), so this
+# image has no fixed opinion on the port and doesn't need rebuilding to
+# change it.
 CMD ["node", "server/index.ts"]
