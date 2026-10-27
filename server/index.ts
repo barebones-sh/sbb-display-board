@@ -1,7 +1,7 @@
 import { createServer, type ServerResponse } from "node:http";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { extname, resolve, sep } from "node:path";
-import { fetchDisruptionsByStation, type NormalizedDisruption } from "./siriSx.ts";
+import { fetchDisruptionsByStation, RateLimitError, type NormalizedDisruption } from "./siriSx.ts";
 
 /**
  * Small local proxy in front of opentransportdata.swiss's SIRI-SX API —
@@ -56,22 +56,41 @@ const apiKeySiriSxUnplanned: string = rawApiKeySiriSxUnplanned;
 let unplannedByStation = new Map<string, NormalizedDisruption[]>();
 let completeByStation = new Map<string, NormalizedDisruption[]>();
 
-async function pollUnplanned() {
-  try {
-    unplannedByStation = await fetchDisruptionsByStation("unplanned", apiKeySiriSxUnplanned);
-  } catch (err) {
-    // Stale-but-present beats blank — same approach as servicePoints.ts's
-    // lookup refresh: log and keep serving the last-known-good cache.
-    console.error("siri-sx-unplanned poll failed, keeping previous cache:", err);
-  }
-}
+const MAX_BACKOFF_MS = 60 * 60 * 1000;
 
-async function pollComplete() {
-  try {
-    completeByStation = await fetchDisruptionsByStation("complete", apiKeySiriSx);
-  } catch (err) {
-    console.error("siri-sx (complete) poll failed, keeping previous cache:", err);
-  }
+/**
+ * Self-scheduling poll loop (setTimeout, not setInterval) so a 429 can push
+ * the next attempt out: honors `Retry-After` when the upstream sends one,
+ * otherwise doubles the delay per consecutive 429, capped at an hour. Any
+ * other failure retries at the normal cadence. Either way the previous cache
+ * is kept — stale-but-present beats blank, same approach as
+ * servicePoints.ts's lookup refresh.
+ */
+function startPolling(label: string, intervalMs: number, poll: () => Promise<void>): void {
+  let consecutiveRateLimits = 0;
+  const run = async () => {
+    let delayMs = intervalMs;
+    try {
+      await poll();
+      if (consecutiveRateLimits > 0) console.log(`${label} poll recovered from rate limiting`);
+      consecutiveRateLimits = 0;
+    } catch (err) {
+      if (err instanceof RateLimitError) {
+        consecutiveRateLimits++;
+        delayMs = Math.min(
+          MAX_BACKOFF_MS,
+          Math.max(err.retryAfterMs ?? 0, intervalMs * 2 ** consecutiveRateLimits),
+        );
+        console.warn(
+          `${label} poll rate-limited (429), keeping previous cache; next attempt in ${Math.round(delayMs / 1000)}s`,
+        );
+      } else {
+        console.error(`${label} poll failed, keeping previous cache:`, err);
+      }
+    }
+    setTimeout(run, delayMs);
+  };
+  void run();
 }
 
 function disruptionsForLocation(locationId: string): NormalizedDisruption[] {
@@ -191,10 +210,12 @@ const server = createServer((req, res) => {
   serveStaticOrSpaFallback(res, url.pathname);
 });
 
-pollUnplanned();
-pollComplete();
-setInterval(pollUnplanned, UNPLANNED_POLL_MS);
-setInterval(pollComplete, COMPLETE_POLL_MS);
+startPolling("siri-sx-unplanned", UNPLANNED_POLL_MS, async () => {
+  unplannedByStation = await fetchDisruptionsByStation("unplanned", apiKeySiriSxUnplanned);
+});
+startPolling("siri-sx (complete)", COMPLETE_POLL_MS, async () => {
+  completeByStation = await fetchDisruptionsByStation("complete", apiKeySiriSx);
+});
 
 server.listen(PORT, () => {
   console.log(`Disruptions proxy listening on http://localhost:${PORT}`);

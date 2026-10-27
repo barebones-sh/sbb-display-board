@@ -203,6 +203,28 @@ function parseSituations(xml: string): ParsedSituation[] {
   return parsed;
 }
 
+/** Thrown on a 429 so the poll loop can back off instead of retrying at its
+ * normal cadence — which, once a per-day quota is exhausted, would just
+ * keep hitting 429 (and logging) until the quota resets. */
+export class RateLimitError extends Error {
+  /** Parsed from `Retry-After` (delta-seconds or HTTP-date), when present. */
+  readonly retryAfterMs: number | null;
+
+  constructor(endpoint: SiriSxEndpoint, retryAfter: string | null) {
+    super(`${endpoint} request rate-limited (429)`);
+    this.name = "RateLimitError";
+    this.retryAfterMs = parseRetryAfter(retryAfter);
+  }
+}
+
+function parseRetryAfter(value: string | null): number | null {
+  if (!value) return null;
+  const seconds = Number(value);
+  if (Number.isFinite(seconds)) return Math.max(0, seconds * 1000);
+  const date = Date.parse(value);
+  return Number.isNaN(date) ? null : Math.max(0, date - Date.now());
+}
+
 async function fetchSiriSx(endpoint: SiriSxEndpoint, apiKey: string): Promise<string> {
   const response = await fetch(SIRI_SX_URLS[endpoint], {
     headers: {
@@ -210,6 +232,9 @@ async function fetchSiriSx(endpoint: SiriSxEndpoint, apiKey: string): Promise<st
       "User-Agent": "sbb-display-board/0.1 (+https://github.com)",
     },
   });
+  if (response.status === 429) {
+    throw new RateLimitError(endpoint, response.headers.get("Retry-After"));
+  }
   if (!response.ok) {
     throw new Error(`${endpoint} request failed: ${response.status} ${response.statusText}`);
   }
